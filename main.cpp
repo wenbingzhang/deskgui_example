@@ -8,7 +8,13 @@
 #include <deskgui/app.h>
 #include <deskgui/resource_compiler.h>
 
+#ifdef __APPLE__
 #include "platform/macos/menu.h"
+#endif
+
+#ifdef _MSC_VER
+#include "platform/windows/menu.h"
+#endif
 
 using namespace deskgui;
 using namespace deskgui::event;
@@ -37,7 +43,7 @@ int main() {
  menu.createSystemTray();
 #endif
 
-#ifdef __WIN32__
+#ifdef _MSC_VER
   Menu menu(static_cast<HWND>(window->getNativeWindow()));
   menu.createMenu();
   menu.createSystemTray();
