@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "native.h"
 #import <Cocoa/Cocoa.h>
 #include  <iostream>
 
@@ -28,13 +28,13 @@
 }
 @end
 
-Menu::Menu() {
+Native::Native() {
 }
 
-Menu::~Menu() {
+Native::~Native() {
 }
 
-void Menu::createMenu() {
+void Native::createMenu() {
     // 创建主菜单
     NSMenu *mainMenu = [NSMenu new];
 
@@ -65,7 +65,7 @@ void Menu::createMenu() {
     [NSApp updateWindows];
 }
 
-void Menu::createSystemTray() {
+void Native::createTray() {
     // 获取状态栏实例
     NSStatusBar *statusBar = [NSStatusBar systemStatusBar];
 

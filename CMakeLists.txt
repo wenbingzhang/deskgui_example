@@ -21,7 +21,8 @@ message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 set(source main.cpp)
 
 if(APPLE)
-    set(source ${source} platform/macos/menu.h platform/macos/menu.mm)
+    enable_language(OBJCXX)
+    set(source ${source} platform/native.h platform/macos.mm)
 endif()
 
 if (WIN32)
@@ -31,7 +32,7 @@ if (WIN32)
         add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
     endif()
     add_definitions(-DUNICODE -D_UNICODE)  # 强制使用宽字符API
-    set(source ${source} platform/windows/menu.cpp platform/windows/menu.h)
+    set(source ${source} platform/native.h platform/windows.cpp)
 endif ()
 
 add_executable(${PROJECT_NAME} ${source})

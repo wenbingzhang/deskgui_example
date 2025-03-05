@@ -8,13 +8,8 @@
 #include <deskgui/app.h>
 #include <deskgui/resource_compiler.h>
 
-#ifdef __APPLE__
-#include "platform/macos/menu.h"
-#endif
+#include "platform/native.h"
 
-#ifdef _MSC_VER
-#include "platform/windows/menu.h"
-#endif
 
 using namespace deskgui;
 using namespace deskgui::event;
@@ -37,17 +32,9 @@ int main() {
   WebviewOptions options;
   options.setOption(WebviewOptions::kRemoteDebuggingPort, 9222);
 
-#ifdef __APPLE__
- Menu menu;
- menu.createMenu();
- menu.createSystemTray();
-#endif
-
-#ifdef _MSC_VER
-  Menu menu(static_cast<HWND>(window->getNativeWindow()));
-  menu.createMenu();
-  menu.createSystemTray();
-#endif
+   Native native;
+   native.createMenu();
+   native.createTray();
 
   auto webview = window->createWebview("webview", options);
 

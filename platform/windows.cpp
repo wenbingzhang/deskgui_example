@@ -2,7 +2,7 @@
 // Created by wenbing on 2025/2/18.
 //
 
-#include "menu.h"
+#include "native.h"
 
 WNDPROC originalWndProc = nullptr;
 // 自定义窗口过程
@@ -47,15 +47,15 @@ LRESULT CALLBACK SubclassProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
 }
 
-Menu::Menu(HWND hWnd) {
+Native::Native(HWND hWnd) {
     m_hWnd = hWnd;
 }
 
-Menu::~Menu() {
+Native::~Native() {
     m_hWnd = nullptr;
 }
 
-void Menu::createMenu() {
+void Native::createMenu() {
     auto hMenu = CreateMenu();
     auto hFileMenu = CreatePopupMenu();
     AppendMenuW(hFileMenu, MF_STRING, 1001,L"open");
@@ -71,7 +71,7 @@ void Menu::createMenu() {
     UpdateWindow(m_hWnd);
 }
 
-void Menu::createSystemTray() {
+void Native::createTray() {
     NOTIFYICONDATA nid = {0};
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = m_hWnd;                // 关联的窗口句柄
