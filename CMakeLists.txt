@@ -4,25 +4,27 @@ set(CMAKE_CXX_STANDARD 17)
 
 cmake_policy(SET CMP0135 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)  # 强制子项目继承
-
-set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
-set(BUILD_TESTS_AND_BENCHMARKS OFF CACHE BOOL "Build tests and benchmarks" FORCE)
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 include(FetchContent)
 
 FetchContent_Declare(
         deskgui
-        GIT_REPOSITORY https://github.com/deskgui/deskgui
+        GIT_REPOSITORY https://github.com/wenbingzhang/deskgui
         GIT_TAG main
 )
+set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
+set(BUILD_TESTS_AND_BENCHMARKS OFF CACHE BOOL "Build tests and benchmarks" FORCE)
 FetchContent_MakeAvailable(deskgui)
 
-message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
+find_package(cpr REQUIRED)
+
+#message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 set(source main.cpp)
 
 if(APPLE)
     enable_language(OBJCXX)
-    set(source ${source} platform/native.h platform/macos.mm)
+    set(source ${source} gui/gui.h gui/gui_macos.mm)
 endif()
 
 if (WIN32)
@@ -32,26 +34,30 @@ if (WIN32)
         add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
     endif()
     add_definitions(-DUNICODE -D_UNICODE)  # 强制使用宽字符API
-    set(source ${source} platform/native.h platform/windows.cpp)
+    set(source ${source} gui2/platform.h gui2/windows.cpp
+            gui/gui.h
+            gui/gui_windows.cpp)
 endif ()
 
 add_executable(${PROJECT_NAME} ${source})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
-target_link_libraries(${PROJECT_NAME} PRIVATE deskgui)
+target_link_libraries(${PROJECT_NAME} PRIVATE deskgui cpr::cpr)
 
 list(APPEND CMAKE_MODULE_PATH ${deskgui_SOURCE_DIR}/cmake)
+
 # embed resources
 include(resource_compiler/resource_compiler)
 
 # Specify the assets
-file(GLOB_RECURSE ASSETS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/*)
+file(GLOB_RECURSE ASSETS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/frontend/dist/*)
 
 resource_compiler(
-    TARGET_NAME  ${PROJECT_NAME}
-    RESOURCE_FILES "${ASSETS_FILES}"
-    PACK_NAME "assets"
-    ROOT_FOLDER "/assets"
+        TARGET_NAME  ${PROJECT_NAME}
+        RESOURCE_FILES "${ASSETS_FILES}"
+        PACK_NAME "assets"
+        ROOT_FOLDER "/frontend/dist"
 )
+
 
 if(APPLE)
     # Set macOS bundle properties

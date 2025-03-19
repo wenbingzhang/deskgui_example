@@ -8,54 +8,58 @@
 #include <deskgui/app.h>
 #include <deskgui/resource_compiler.h>
 
-#include "platform/native.h"
+#include "gui/gui.h"
+#include  <cpr/cpr.h>
 
 
 using namespace deskgui;
 using namespace deskgui::event;
 
-struct MessageDeserialization {
-  void process(const WebviewOnMessage& event) { std::cout << event.message << std::endl; }
+struct MessageDeserialization
+{
+    void process(const WebviewOnMessage& event) { std::cout << event.message << std::endl; }
 };
 
-int main() {
-  App app("EmbeddedResourcesExample");
-  auto window = app.createWindow("window");
+int main()
+{
+    // cpr::Response r = cpr::Get(cpr::Url{"http://www.baidu.com"});
+    // std::cout << r.status_code << std::endl;
+    // std::cout << r.header["content-type"] << std::endl;
+    // std::cout << r.text << std::endl;
 
-  window->setTitle("Embedded web resources example");
-  window->setResizable(true);
-  window->setMinSize({500, 500});
-  window->setSize({800, 800});
-  window->center();
-  window->setBackgroundColor(249, 203, 103);
 
-  WebviewOptions options;
-  options.setOption(WebviewOptions::kRemoteDebuggingPort, 9222);
+    App app("EmbeddedResourcesExample");
+    auto window = app.createWindow("window");
 
-   Native native;
-   native.createMenu();
-   native.createTray();
+    window->setTitle("Embedded web resources example");
+    window->setResizable(true);
+    window->setMinSize({600, 340});
+    window->setSize({1200, 680});
+    window->center();
 
-  auto webview = window->createWebview("webview", options);
+    WebviewOptions options;
+    options.setOption(WebviewOptions::kRemoteDebuggingPort, 9222);
 
-  webview->loadResources(getCompiledResources("assets"));
-  webview->serveResource("index.html");
+    GUI::createMenu();
+    GUI::createTray();
 
-  // webview->serveResource("src/lenna.png"); //try loading a png!
+    auto webview = window->createWebview("webview", options);
+    window->setBackgroundColor(14, 14, 14);
 
-  window->connect<WindowResize>(
-      [&webview](const WindowResize& event) { webview->resize(event.size); });
+    webview->loadResources(getCompiledResources("assets"));
+    webview->serveResource("index.html");
 
-    // This C++ callback is exposed as a global JavaScript function, `window.counter_value()`.
-    // When `window.counter_value()` is called in JavaScript, this callback will be triggered.
-    webview->addCallback("counter_value", [](std::string_view message) {
-      std::cout << "Counter value message " << message << std::endl;
-    });
+    // webview->serveResource("src/lenna.png"); //try loading a png!
 
-    webview->addCallback("counter_reset", [=](std::string_view message) {
-      std::cout << "Counter reset " << message << std::endl;
-      // notify frontend that reset is processed...
-      webview->postMessage("Counter reset received on the C++ side! <3");
+    window->connect<WindowResize>(
+        [&webview](const WindowResize& event) { webview->resize(event.size); });
+
+    webview->addCallback("sys_window", [=](std::string_view message)
+    {
+        if (message.compare("show"))
+        {
+            window->show();
+        }
     });
 
     // We can listen to all types of messages (including attached callbacks) by connecting to the
@@ -63,7 +67,7 @@ int main() {
     MessageDeserialization msgCallback;
     webview->connect<WebviewOnMessage>(&msgCallback, &MessageDeserialization::process);
 
-  webview->connect<WebviewContentLoaded>([&window]() { window->show(); });
+    // webview->connect<WebviewContentLoaded>([&window]() { window->show(); });
 
-  app.run();
+    app.run();
 }

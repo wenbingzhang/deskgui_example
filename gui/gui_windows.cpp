@@ -1,8 +1,8 @@
 //
-// Created by wenbing on 2025/2/18.
+// Created by 张文兵 on 2025/3/19.
 //
 
-#include "native.h"
+#include "gui.h"
 
 WNDPROC originalWndProc = nullptr;
 // 自定义窗口过程
@@ -47,39 +47,34 @@ LRESULT CALLBACK SubclassProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
 }
 
-Native::Native(HWND hWnd) {
-    m_hWnd = hWnd;
-}
+namespace GUI {
 
-Native::~Native() {
-    m_hWnd = nullptr;
-}
+    void createMenu(HWND hWnd) {
+        auto hMenu = CreateMenu();
+        auto hFileMenu = CreatePopupMenu();
+        AppendMenuW(hFileMenu, MF_STRING, 1001,L"open");
+        AppendMenuW(hMenu,MF_POPUP,(UINT_PTR)hFileMenu,L"file");
+        SetMenu(hWnd, hMenu);
 
-void Native::createMenu() {
-    auto hMenu = CreateMenu();
-    auto hFileMenu = CreatePopupMenu();
-    AppendMenuW(hFileMenu, MF_STRING, 1001,L"open");
-    AppendMenuW(hMenu,MF_POPUP,(UINT_PTR)hFileMenu,L"file");
-    SetMenu(m_hWnd, hMenu);
+        originalWndProc = (WNDPROC)SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)SubclassProc);
 
-    originalWndProc = (WNDPROC)SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, (LONG_PTR)SubclassProc);
+//        // 1. 在窗口创建后修改背景色（参考 ）
+//        SetClassLongPtr(hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(255, 255, 255)));
+        // 2. 强制重绘窗口
+        InvalidateRect(hWnd, nullptr, TRUE);
+        UpdateWindow(hWnd);
+        hWnd
 
-    // 1. 在窗口创建后修改背景色（参考 ）
-    SetClassLongPtr(m_hWnd, GCLP_HBRBACKGROUND, (LONG_PTR)CreateSolidBrush(RGB(255, 255, 255)));
-    // 2. 强制重绘窗口
-    InvalidateRect(m_hWnd, nullptr, TRUE);
-    UpdateWindow(m_hWnd);
-}
+    void createTray(HWND hWnd) {
+        NOTIFYICONDATA nid = {0};
+        nid.cbSize = sizeof(NOTIFYICONDATA);
+        nid.hWnd = hWnd;                // 关联的窗口句柄
+        nid.uID = IDR_MAINFRAME;                    // 图标唯一标识符
+        nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; // 启用图标、消息、提示
+        nid.uCallbackMessage = WM_USER; // 自定义消息标识（用于响应事件）
+        nid.hIcon = LoadIcon(nullptr, IDI_APPLICATION); //LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_SMALL)); // 加载图标资源
+        lstrcpyW(nid.szTip, L"webview"); // 悬停提示文本
 
-void Native::createTray() {
-    NOTIFYICONDATA nid = {0};
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd = m_hWnd;                // 关联的窗口句柄
-    nid.uID = IDR_MAINFRAME;                    // 图标唯一标识符
-    nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; // 启用图标、消息、提示
-    nid.uCallbackMessage = WM_USER; // 自定义消息标识（用于响应事件）
-    nid.hIcon = LoadIcon(nullptr, IDI_APPLICATION); //LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_SMALL)); // 加载图标资源
-    lstrcpyW(nid.szTip, L"webview"); // 悬停提示文本
-
-    Shell_NotifyIcon(NIM_ADD, &nid); // 添加图标到系统托盘
+        Shell_NotifyIcon(NIM_ADD, &nid); // 添加图标到系统托盘
+    }
 }
