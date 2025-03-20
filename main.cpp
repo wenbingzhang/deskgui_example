@@ -46,8 +46,13 @@ int main()
     auto webview = window->createWebview("webview", options);
     window->setBackgroundColor(14, 14, 14);
 
+#ifdef DEBUG_MODE
+    webview->navigate("http://localhost:5173");
+#else
     webview->loadResources(getCompiledResources("assets"));
     webview->serveResource("index.html");
+#endif
+
 
     // webview->serveResource("src/lenna.png"); //try loading a png!
 

@@ -19,20 +19,19 @@ FetchContent_MakeAvailable(deskgui)
 
 find_package(cpr REQUIRED)
 
-#message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 set(source main.cpp)
 
-if(APPLE)
+if (APPLE)
     enable_language(OBJCXX)
     set(source ${source} gui/gui.h gui/gui_macos.mm)
-endif()
+endif ()
 
 if (WIN32)
-    if(MSVC)
+    if (MSVC)
         add_compile_options(/utf-8)
-    else()
+    else ()
         add_compile_options(-finput-charset=UTF-8 -fexec-charset=UTF-8)
-    endif()
+    endif ()
     add_definitions(-DUNICODE -D_UNICODE)  # 强制使用宽字符API
     set(source ${source} gui2/platform.h gui2/windows.cpp
             gui/gui.h
@@ -42,24 +41,32 @@ endif ()
 add_executable(${PROJECT_NAME} ${source})
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 17)
 target_link_libraries(${PROJECT_NAME} PRIVATE deskgui cpr::cpr)
+# 根据构建类型定义宏
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG_MODE=1)
+else ()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG_MODE=0)
+endif ()
+
 
 list(APPEND CMAKE_MODULE_PATH ${deskgui_SOURCE_DIR}/cmake)
 
-# embed resources
-include(resource_compiler/resource_compiler)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    # embed resources
+    include(resource_compiler/resource_compiler)
 
-# Specify the assets
-file(GLOB_RECURSE ASSETS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/frontend/dist/*)
+    # Specify the assets
+    file(GLOB_RECURSE ASSETS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/frontend/dist/*)
 
-resource_compiler(
-        TARGET_NAME  ${PROJECT_NAME}
-        RESOURCE_FILES "${ASSETS_FILES}"
-        PACK_NAME "assets"
-        ROOT_FOLDER "/frontend/dist"
-)
+    resource_compiler(
+            TARGET_NAME ${PROJECT_NAME}
+            RESOURCE_FILES "${ASSETS_FILES}"
+            PACK_NAME "assets"
+            ROOT_FOLDER "/frontend/dist"
+    )
+endif ()
 
-
-if(APPLE)
+if (APPLE)
     # Set macOS bundle properties
     set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_BUNDLE ON
